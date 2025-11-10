@@ -17,7 +17,7 @@ final class StoreContactRequest extends FormRequest
     {
         return [
             'name' => 'required|string|max:255|min:3',
-            'phone' => 'required|string|unique:contacts,phone|regex:/^[0-9\s\-\(\)]{8,20}$/',
+            'phone' => 'required|string|digits_between:10,20|unique:contacts,phone',
             'email' => 'nullable|email|max:255|unique:contacts,email',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
         ];
@@ -29,13 +29,20 @@ final class StoreContactRequest extends FormRequest
             'name.required' => 'Name is required',
             'name.min' => 'Name must have at least 3 characters',
             'phone.required' => 'Phone is required',
+            'phone.digits_between' => 'Phone must have between 10 and 20 digits',
             'phone.unique' => 'This phone number is already registered',
-            'phone.regex' => 'Invalid phone format',
             'email.email' => 'Invalid email format',
             'email.unique' => 'This email is already registered',
             'image.image' => 'File must be an image',
             'image.mimes' => 'Image must be JPEG, PNG, JPG or GIF',
             'image.max' => 'Image cannot exceed 2MB',
         ];
+    }
+
+    protected function prepareForValidation(): void
+    {
+        $this->merge([
+            'phone' => preg_replace('/[^0-9]/', '', $this->phone),
+        ]);
     }
 }

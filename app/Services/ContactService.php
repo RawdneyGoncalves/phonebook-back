@@ -8,6 +8,7 @@ use App\DTOs\ContactDTO;
 use App\Models\Contact;
 use App\Repositories\ContactRepository;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\Auth;
 
 final class ContactService
 {
@@ -29,12 +30,21 @@ final class ContactService
 
     public function getById(int $id): ?Contact
     {
-        return $this->repository->findById($id);
+        $contact = $this->repository->findById($id);
+
+        if ($contact && $contact->user_id !== Auth::id()) {
+            return null;
+        }
+
+        return $contact;
     }
 
     public function create(ContactDTO $dto): Contact
     {
-        return $this->repository->create($dto->toArray());
+        $data = $dto->toArray();
+        $data['user_id'] = Auth::id();
+
+        return $this->repository->create($data);
     }
 
     public function update(int $id, ContactDTO $dto): Contact
@@ -45,7 +55,12 @@ final class ContactService
             throw new \Exception('Contact not found', 404);
         }
 
-        $this->repository->update($contact, $dto->toArray());
+        if ($contact->user_id !== Auth::id()) {
+            throw new \Exception('Unauthorized', 403);
+        }
+
+        $data = $dto->toArray();
+        $this->repository->update($contact, $data);
 
         return $contact->fresh();
     }
@@ -58,12 +73,16 @@ final class ContactService
             throw new \Exception('Contact not found', 404);
         }
 
+        if ($contact->user_id !== Auth::id()) {
+            throw new \Exception('Unauthorized', 403);
+        }
+
         return $this->repository->delete($contact);
     }
 
     public function phoneExists(string $phone, ?int $excludeId = null): bool
     {
-        $contact = $this->repository->findByPhone($phone);
+        $contact = $this->repository->findByPhoneAndUser(Auth::id(), $phone);
 
         return $contact && (!$excludeId || $contact->id !== $excludeId);
     }

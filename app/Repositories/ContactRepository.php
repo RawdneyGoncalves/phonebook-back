@@ -6,6 +6,7 @@ namespace App\Repositories;
 
 use App\Models\Contact;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\Auth;
 
 final class ContactRepository
 {
@@ -21,9 +22,18 @@ final class ContactRepository
         return $this->model->where('phone', $phone)->first();
     }
 
+    public function findByPhoneAndUser(int $userId, string $phone): ?Contact
+    {
+        return $this->model
+            ->where('user_id', $userId)
+            ->where('phone', $phone)
+            ->first();
+    }
+
     public function all(int $perPage = 15): LengthAwarePaginator
     {
         return $this->model
+            ->where('user_id', Auth::id())
             ->orderBy('name', 'asc')
             ->paginate($perPage);
     }
@@ -31,6 +41,7 @@ final class ContactRepository
     public function search(string $query, int $perPage = 15): LengthAwarePaginator
     {
         return $this->model
+            ->where('user_id', Auth::id())
             ->where(function ($q) use ($query) {
                 $q->where('name', 'like', "%{$query}%")
                   ->orWhere('phone', 'like', "%{$query}%")

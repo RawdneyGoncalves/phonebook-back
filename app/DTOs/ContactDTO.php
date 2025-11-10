@@ -15,9 +15,11 @@ final class ContactDTO
 
     public static function fromArray(array $data): self
     {
+        $phone = preg_replace('/[^0-9]/', '', $data['phone']);
+
         return new self(
             name: $data['name'],
-            phone: $data['phone'],
+            phone: $phone,
             email: $data['email'] ?? null,
             image_path: $data['image_path'] ?? null,
         );
