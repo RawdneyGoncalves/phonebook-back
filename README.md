@@ -1,6 +1,6 @@
 # Phonebook API - Sistema de Gerenciamento de Contatos
 
-VIDEO: https://youtu.be/QD6PtxELuOk
+VIDEO: https://youtu.be/dAt20HTwCvk
 
 Aplicação de API REST desenvolvida em Laravel 11 implementando Clean Architecture, Domain-Driven Design (DDD) e padrões SOLID. Sistema completo de gerenciamento de contatos com autenticação baseada em tokens Sanctum, upload de imagens otimizado e persistência em PostgreSQL com cache distribuído via Redis.
 
