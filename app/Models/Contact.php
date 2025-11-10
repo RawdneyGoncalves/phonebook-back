@@ -24,10 +24,12 @@ class Contact extends Model
         'updated_at' => 'datetime',
     ];
 
+    protected $appends = ['image_url'];
+
     public function getImageUrlAttribute(): ?string
     {
         return $this->image_path
-            ? asset('storage/' . $this->image_path)
+            ? url('storage/' . $this->image_path)
             : null;
     }
 }

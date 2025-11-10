@@ -7,6 +7,7 @@ namespace App\Http\Controllers\Api;
 use App\DTOs\ContactDTO;
 use App\Http\Requests\StoreContactRequest;
 use App\Http\Requests\UpdateContactRequest;
+use App\Http\Resources\ContactResource;
 use App\Models\Contact;
 use App\Services\ContactService;
 use App\Services\ImageUploadService;
@@ -38,7 +39,7 @@ final class ContactController
                 : $this->contactService->getAll($perPage);
 
             return response()->json([
-                'data' => $contacts->items(),
+                'data' => ContactResource::collection($contacts->items()),
                 'pagination' => [
                     'total' => $contacts->total(),
                     'per_page' => $contacts->perPage(),
@@ -65,9 +66,10 @@ final class ContactController
                 $contact->update([
                     'image_path' => $this->imageUploadService->upload($request->file('image'))
                 ]);
+                $contact->refresh();
             }
 
-            return response()->json(['data' => $contact], 201);
+            return response()->json(['data' => new ContactResource($contact)], 201);
         } catch (\Exception $e) {
             Log::error('Erro ao criar contato', ['error' => $e->getMessage()]);
             return response()->json(['message' => 'Erro ao criar contato'], 500);
@@ -76,7 +78,7 @@ final class ContactController
 
     public function show(Contact $contact): JsonResponse
     {
-        return response()->json(['data' => $contact]);
+        return response()->json(['data' => new ContactResource($contact)]);
     }
 
     public function update(UpdateContactRequest $request, Contact $contact): JsonResponse
@@ -93,7 +95,7 @@ final class ContactController
 
             $updated = $this->contactService->update($contact->id, ContactDTO::fromArray($data));
 
-            return response()->json(['data' => $updated]);
+            return response()->json(['data' => new ContactResource($updated)]);
         } catch (\Exception $e) {
             Log::error('Erro ao atualizar contato', ['error' => $e->getMessage()]);
             return response()->json(['message' => 'Erro ao atualizar contato'], 500);

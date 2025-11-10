@@ -15,7 +15,7 @@ final class UpdateContactRequest extends FormRequest
 
     public function rules(): array
     {
-        $contactId = $this->route('contact');
+        $contactId = $this->route('contact')?->id ?? null;
 
         return [
             'name' => 'required|string|max:255|min:3',
