@@ -16,6 +16,7 @@ class Contact extends Model
         'phone',
         'email',
         'image_path',
+        'user_id',
     ];
 
     protected $casts = [

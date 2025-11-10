@@ -11,7 +11,9 @@ use App\Models\Contact;
 use App\Services\ContactService;
 use App\Services\ImageUploadService;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Auth;
 
 final class ContactController
 {
@@ -20,9 +22,15 @@ final class ContactController
         private ImageUploadService $imageUploadService,
     ) {}
 
-    public function index(StoreContactRequest $request): JsonResponse
+    public function index(Request $request): JsonResponse
     {
         try {
+            $userId = Auth::id();
+
+            if (!$userId) {
+                return response()->json(['error' => 'Unauthorized'], 401);
+            }
+
             $query = $request->query('q');
             $perPage = (int) $request->query('per_page', 15);
             $contacts = $query
