@@ -42,7 +42,7 @@ final class StoreContactRequest extends FormRequest
     protected function prepareForValidation(): void
     {
         $this->merge([
-            'phone' => preg_replace('/[^0-9]/', '', $this->phone),
+            'phone' => preg_replace('/[^0-9]/', '', $this->phone ?? ''),
         ]);
     }
 }

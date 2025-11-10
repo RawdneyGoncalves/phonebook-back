@@ -2,31 +2,34 @@
 
 namespace App\Http\Middleware;
 
-use Closure;
+use Illuminate\Auth\Middleware\Authenticate as Middleware;
 use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
 
-class Authenticate
+class Authenticate extends Middleware
 {
-    public function handle(Request $request, Closure $next)
+    /**
+     * Handle unauthenticated requests.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return string|null
+     */
+    protected function redirectTo(Request $request): ?string
     {
-        $publicRoutes = [
-            'api/auth/register',
-            'api/auth/login',
-        ];
+        return null;
+    }
 
-        foreach ($publicRoutes as $route) {
-            if ($request->is($route)) {
-                return $next($request);
-            }
-        }
-
-        if (!$request->user()) {
-            return response()->json([
-                'message' => 'Unauthorized',
-                'error' => 'Missing or invalid authentication token'
-            ], 401);
-        }
-
-        return $next($request);
+    /**
+     *
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @param  array  $guards
+     * @return \Illuminate\Http\JsonResponse
+     */
+    protected function unauthenticated($request, array $guards): JsonResponse
+    {
+        return response()->json([
+            'message' => 'Unauthorized'
+        ], 401);
     }
 }

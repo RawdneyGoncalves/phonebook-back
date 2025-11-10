@@ -16,7 +16,11 @@ final class ContactService
 
     public function getAll(int $perPage = 15): LengthAwarePaginator
     {
-        return $this->repository->all($perPage);
+        $userId = Auth::id();
+
+        return Contact::where('user_id', $userId)
+            ->orderBy('created_at', 'desc')
+            ->paginate($perPage);
     }
 
     public function search(string $query, int $perPage = 15): LengthAwarePaginator
@@ -25,7 +29,16 @@ final class ContactService
             return $this->getAll($perPage);
         }
 
-        return $this->repository->search($query, $perPage);
+        $userId = Auth::id();
+
+        return Contact::where('user_id', $userId)
+            ->where(function ($q) use ($query) {
+                $q->where('name', 'ilike', "%{$query}%")
+                  ->orWhere('phone', 'like', "%{$query}%")
+                  ->orWhere('email', 'ilike', "%{$query}%");
+            })
+            ->orderBy('created_at', 'desc')
+            ->paginate($perPage);
     }
 
     public function getById(int $id): ?Contact
@@ -44,46 +57,42 @@ final class ContactService
         $data = $dto->toArray();
         $data['user_id'] = Auth::id();
 
-        return $this->repository->create($data);
+        return Contact::create($data);
     }
 
     public function update(int $id, ContactDTO $dto): Contact
     {
-        $contact = $this->repository->findById($id);
-
-        if (!$contact) {
-            throw new \Exception('Contact not found', 404);
-        }
+        $contact = Contact::findOrFail($id);
 
         if ($contact->user_id !== Auth::id()) {
             throw new \Exception('Unauthorized', 403);
         }
 
-        $data = $dto->toArray();
-        $this->repository->update($contact, $data);
+        $contact->update($dto->toArray());
 
         return $contact->fresh();
     }
 
     public function delete(int $id): bool
     {
-        $contact = $this->repository->findById($id);
-
-        if (!$contact) {
-            throw new \Exception('Contact not found', 404);
-        }
+        $contact = Contact::findOrFail($id);
 
         if ($contact->user_id !== Auth::id()) {
             throw new \Exception('Unauthorized', 403);
         }
 
-        return $this->repository->delete($contact);
+        return $contact->delete();
     }
 
     public function phoneExists(string $phone, ?int $excludeId = null): bool
     {
-        $contact = $this->repository->findByPhoneAndUser(Auth::id(), $phone);
+        $query = Contact::where('user_id', Auth::id())
+            ->where('phone', $phone);
 
-        return $contact && (!$excludeId || $contact->id !== $excludeId);
+        if ($excludeId) {
+            $query->where('id', '!=', $excludeId);
+        }
+
+        return $query->exists();
     }
 }

@@ -29,7 +29,6 @@ final class AuthController
             if (User::where('email', $validated['email'])->exists()) {
                 return response()->json([
                     'message' => 'Email já cadastrado',
-                    'error' => 'Este email já está registrado no sistema',
                 ], 400);
             }
 
@@ -54,7 +53,6 @@ final class AuthController
             ]);
             return response()->json([
                 'message' => 'Erro ao registrar',
-                'error' => $e->getMessage(),
             ], 500);
         }
     }
@@ -87,8 +85,7 @@ final class AuthController
                 'trace' => $e->getTraceAsString(),
             ]);
             return response()->json([
-                'message' => 'Email ou senha incorretos',
-                'error' => 'Credenciais inválidas',
+                'message' => 'Credenciais inválidas',
             ], 401);
         }
     }
@@ -99,32 +96,21 @@ final class AuthController
             $this->authService->logout($request->user());
             return response()->json([
                 'message' => 'Logout realizado com sucesso',
-            ], 200);
+            ]);
         } catch (\Exception $e) {
             Log::error('Erro ao fazer logout', [
                 'error' => $e->getMessage(),
             ]);
             return response()->json([
                 'message' => 'Erro ao fazer logout',
-                'error' => $e->getMessage(),
             ], 500);
         }
     }
 
     public function me(Request $request): JsonResponse
     {
-        try {
-            return response()->json([
-                'data' => $request->user(),
-            ], 200);
-        } catch (\Exception $e) {
-            Log::error('Erro ao buscar usuário', [
-                'error' => $e->getMessage(),
-            ]);
-            return response()->json([
-                'message' => 'Erro ao buscar usuário',
-                'error' => $e->getMessage(),
-            ], 500);
-        }
+        return response()->json([
+            'data' => $request->user(),
+        ]);
     }
 }
